@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>实验室 · NikoTool Lite</title>
+<style>
+:root{
+  --text:#1e293b;--text-dim:#64748b;
+  --accent:#2563eb;--accent-hover:#1d4ed8;--accent-soft:#eff6ff;
+  --dark:#1e293b;--border:#e2e8f0;
+  --code-bg:#f8fafc;--out-bg:#f8fafc;
+  --red:#dc2626;--amber:#d97706;--green:#059669;--cyan:#0891b2;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;padding:24px 20px;min-height:100vh;
+  color:var(--text);
+  font-family:system-ui,-apple-system,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;
+  font-size:14px;line-height:1.6;
+  background:#fff;position:relative;
+}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(circle at 12% 8%,rgba(96,165,250,.18) 0%,transparent 42%),
+    radial-gradient(circle at 88% 22%,rgba(147,197,253,.14) 0%,transparent 45%),
+    radial-gradient(circle at 50% 100%,rgba(191,219,254,.16) 0%,transparent 50%);
+}
+.wrap{max-width:1040px;margin:0 auto;position:relative;z-index:2}
+
+nav{
+  display:flex;align-items:center;gap:20px;
+  padding:14px 22px;border-radius:14px;margin-bottom:32px;
+  background:rgba(30,41,59,.85);
+  backdrop-filter:blur(18px) saturate(180%);
+  -webkit-backdrop-filter:blur(18px) saturate(180%);
+  border:1px solid rgba(255,255,255,.1);
+  box-shadow:0 8px 32px rgba(30,64,175,.15);
+}
+nav .brand{font-weight:700;font-size:15px;font-family:Georgia,"Songti SC",serif;color:#fff}
+nav .brand em{font-style:normal;color:#60a5fa}
+nav a{margin-left:auto;color:#cbd5e1;text-decoration:none;font-size:13.5px}
+nav a:hover{color:#60a5fa}
+
+header{margin-bottom:24px}
+header h1{
+  margin:0 0 6px;font-size:22px;font-weight:700;letter-spacing:-.3px;
+  font-family:Georgia,"Songti SC",serif;
+}
+header h1 span{color:var(--accent)}
+header .en{font-size:11.5px;color:#94a3b8;font-style:italic;margin:0 0 8px;letter-spacing:.2px}
+header p{margin:0;font-size:13.5px;color:var(--text-dim)}
+
+.tabs{
+  display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap;
+  padding:6px;border-radius:12px;
+  background:rgba(255,255,255,.6);
+  backdrop-filter:blur(14px) saturate(180%);
+  -webkit-backdrop-filter:blur(14px) saturate(180%);
+  border:1px solid var(--border);
+}
+.tab{
+  flex:1;min-width:130px;
+  background:transparent;color:var(--text-dim);border:0;
+  padding:10px 14px;border-radius:8px;
+  font-family:inherit;font-size:13.5px;font-weight:500;
+  cursor:pointer;transition:.15s;text-align:center;
+}
+.tab em{display:block;font-style:italic;font-size:11px;color:#94a3b8;margin-top:2px}
+.tab:hover{color:var(--text);background:rgba(255,255,255,.7)}
+.tab.on{background:var(--accent);color:#fff;box-shadow:0 4px 14px rgba(37,99,235,.25)}
+.tab.on em{color:rgba(255,255,255,.75)}
+
+.card{
+  border:1px solid var(--border);border-radius:14px;
+  background:rgba(255,255,255,.65);
+  backdrop-filter:blur(16px) saturate(180%);
+  -webkit-backdrop-filter:blur(16px) saturate(180%);
+  box-shadow:0 8px 28px rgba(30,64,175,.07), inset 0 1px 0 rgba(255,255,255,.9);
+  overflow:hidden;display:none;
+}
+.card.on{display:block}
+.card-hd{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  padding:14px 20px;border-bottom:1px solid var(--border);
+  font-weight:600;font-size:14.5px;
+}
+.card-hd .en{font-size:11.5px;color:#94a3b8;font-style:italic;font-weight:400}
+.card-hd .hint{margin-left:auto;font-weight:400;font-size:12.5px;color:var(--text-dim)}
+.card-bd{padding:16px 20px 20px}
+
+textarea{
+  width:100%;background:var(--code-bg);color:var(--text);
+  border:1px solid var(--border);border-radius:8px;
+  padding:10px 12px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:13px;line-height:1.6;resize:vertical;outline:none;
+  transition:border-color .15s,box-shadow .15s;
+}
+textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:12px 0}
+.btn{
+  background:var(--accent);color:#fff;border:0;border-radius:8px;
+  padding:8px 16px;font-family:inherit;font-size:13.5px;font-weight:500;
+  cursor:pointer;transition:.15s;
+}
+.btn:hover{background:var(--accent-hover)}
+.btn:active{transform:translateY(1px)}
+.btn.ghost{background:#fff;color:var(--text);border:1px solid var(--border)}
+.btn.ghost:hover{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+input[type=text],input:not([type]){
+  background:#fff;color:var(--text);border:1px solid var(--border);
+  border-radius:8px;padding:8px 10px;font-family:inherit;font-size:13.5px;outline:none;
+}
+input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+.num{width:80px}
+.chk{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-dim);cursor:pointer;user-select:none}
+.chk input{accent-color:var(--accent)}
+input[type=range]{accent-color:var(--accent);width:120px}
+
+.out-tools{display:flex;align-items:center;gap:6px;margin:14px 0 8px;font-size:12.5px;color:var(--text-dim)}
+.out-tools .out-label{margin-right:auto;font-weight:500}
+.out-tools .out-label em{font-style:italic;color:#94a3b8;font-weight:400;margin-left:6px}
+.mini{
+  background:transparent;color:var(--text-dim);border:1px solid var(--border);
+  border-radius:6px;padding:3px 10px;font-family:inherit;font-size:12px;
+  cursor:pointer;transition:.15s;
+}
+.mini:hover{color:var(--accent);border-color:var(--accent);background:var(--accent-soft)}
+
+.out{
+  background:var(--out-bg);border:1px solid var(--border);border-radius:8px;
+  padding:10px 12px;min-height:60px;max-height:360px;overflow:auto;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:12.5px;white-space:pre-wrap;word-break:break-word;
+}
+.muted{color:var(--text-dim)}
+.line{padding:1px 0}
+.line.log{color:#334155}
+.line.info{color:var(--cyan)}
+.line.debug{color:#94a3b8}
+.line.warn{color:var(--amber)}
+.line.error{color:var(--red)}
+.line.ok{color:var(--green)}
+.line.return{color:var(--accent)}
+.line.meta{color:var(--text-dim);font-size:12px}
+.line.plain{color:var(--text)}
+
+iframe{width:100%;height:240px;background:#fff;border:1px solid var(--border);border-radius:8px;margin-top:10px;display:block}
+.fe-grid{display:grid;gap:10px}
+.fe-grid textarea{height:100px}
+@media (min-width:780px){
+  .fe-grid{grid-template-columns:1fr 1fr}
+  .fe-grid textarea:nth-child(3){grid-column:1 / -1;height:120px}
+}
+
+footer{color:var(--text-dim);font-size:12.5px;text-align:center;padding:20px 0}
+footer em{font-style:italic;color:#94a3b8}
+kbd{background:#fff;border:1px solid var(--border);border-radius:4px;padding:1px 6px;font-family:inherit;font-size:12px;color:var(--text)}
+#toast{
+  position:fixed;left:50%;bottom:24px;transform:translate(-50%,10px);
+  background:var(--dark);color:#fff;border-radius:8px;
+  padding:10px 18px;font-size:13px;
+  opacity:0;pointer-events:none;transition:.2s;
+  box-shadow:0 4px 16px rgba(30,41,59,.2);z-index:99;
+}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <nav>
+    <span class="brand">NikoTool <em>Lite</em></span>
+    <a href="index.html">← 返回主页 · Back</a>
+  </nav>
+
+  <header>
+    <h1>NikoTool <span>实验室</span></h1>
+    <div class="en">Lab · run JS, inspect JSON, preview frontend</div>
+    <p>所有输入自动保存在本地，不上传服务器。</p>
+  </header>
+
+  <div class="tabs">
+    <button class="tab on" data-tab="js">JS 运行<em>Playground</em></button>
+    <button class="tab" data-tab="json">JSON 提取<em>Inspector</em></button>
+    <button class="tab" data-tab="fe">前端三件套<em>Runner</em></button>
+  </div>
+
+  <section class="card on" id="p-js">
+    <div class="card-hd">
+      JS 运行检测 <span class="en">JS Playground</span>
+      <span class="hint">独立线程 · 支持 await / return</span>
+    </div>
+    <div class="card-bd">
+      <textarea id="jsIn" rows="9" spellcheck="false" autocomplete="off"></textarea>
+      <div class="row">
+        <button class="btn" id="jsRun">运行</button>
+        <button class="btn ghost" id="jsReset">恢复示例</button>
+        <label class="chk"><input type="checkbox" id="jsTimeoutOn" checked> 启用超时</label>
+        <input class="num" id="jsTimeout" type="number" value="3000" min="100" step="500">
+        <span class="chk" style="cursor:default">毫秒 ms</span>
+      </div>
+      <div class="out-tools">
+        <span class="out-label">输出 <em>Output</em></span>
+        <button class="mini" data-copy="jsOut">复制</button>
+        <button class="mini" data-clear="jsOut">清空</button>
+      </div>
+      <div class="out" id="jsOut"></div>
+    </div>
+  </section>
+
+  <section class="card" id="p-json">
+    <div class="card-hd">
+      JSON 信息提取 <span class="en">JSON Inspector</span>
+      <span class="hint">解析 · 格式化 · 压缩 · 路径查询</span>
+    </div>
+    <div class="card-bd">
+      <textarea id="jsonIn" rows="7" spellcheck="false" autocomplete="off"></textarea>
+      <div class="row">
+        <button class="btn" id="jsonParse">解析并格式化</button>
+        <button class="btn ghost" id="jsonMin">压缩</button>
+        <input id="jsonPath" type="text" placeholder="路径，例如 tags[0] 或 meta.vip" style="flex:1;min-width:160px">
+        <button class="btn ghost" id="jsonQuery">查询</button>
+        <button class="btn ghost" id="jsonReset">恢复示例</button>
+      </div>
+      <div class="out-tools">
+        <span class="out-label">输出 <em>Output</em></span>
+        <button class="mini" data-copy="jsonOut">复制</button>
+        <button class="mini" data-clear="jsonOut">清空</button>
+      </div>
+      <div class="out" id="jsonOut"></div>
+    </div>
+  </section>
+
+  <section class="card" id="p-fe">
+    <div class="card-hd">
+      前端三件套运行器 <span class="en">HTML / CSS / JS Runner</span>
+      <span class="hint">沙箱 iframe · 控制台输出桥接</span>
+    </div>
+    <div class="card-bd">
+      <div class="fe-grid">
+        <textarea id="htmlIn" spellcheck="false" autocomplete="off" placeholder="HTML"></textarea>
+        <textarea id="cssIn" spellcheck="false" autocomplete="off" placeholder="CSS"></textarea>
+        <textarea id="jsIn2" spellcheck="false" autocomplete="off" placeholder="JavaScript"></textarea>
+      </div>
+      <div class="row">
+        <button class="btn" id="feRun">运行</button>
+        <button class="btn ghost" id="feNew">在新窗口打开</button>
+        <button class="btn ghost" id="feDown">下载 HTML</button>
+        <button class="btn ghost" id="feReset">恢复示例</button>
+        <label class="chk"><input type="checkbox" id="feAuto"> 自动运行</label>
+        <span class="chk" style="margin-left:auto;cursor:default">预览高度</span>
+        <input type="range" id="feHeight" min="140" max="720" value="240">
+      </div>
+      <iframe id="frame" sandbox="allow-scripts allow-modals allow-forms allow-popups" title="预览"></iframe>
+      <div class="out-tools">
+        <span class="out-label">控制台输出 <em>Console</em></span>
+        <button class="mini" data-copy="feOut">复制</button>
+        <button class="mini" data-clear="feOut">清空</button>
+      </div>
+      <div class="out" id="feOut"></div>
+    </div>
+  </section>
+
+  <footer>
+    <kbd>Ctrl</kbd> + <kbd>Enter</kbd> 运行 · <kbd>Tab</kbd> 缩进
+    <em> · All client-side</em>
+  </footer>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+document.querySelectorAll('.tab').forEach(t => {
+  t.onclick = () => {
+    document.querySelectorAll('.tab').forEach(x => x.classList.remove('on'));
+    document.querySelectorAll('.card').forEach(x => x.classList.remove('on'));
+    t.classList.add('on');
+    $('p-' + t.dataset.tab).classList.add('on');
+  };
+});
+
+function setBox(box, hint) {
+  box.textContent = '';
+  if (hint) {
+    const s = document.createElement('span');
+    s.className = 'muted'; s.textContent = hint; box.appendChild(s);
+  }
+}
+function appendLine(box, cls, text) {
+  const line = document.createElement('div');
+  line.className = 'line ' + cls;
+  line.textContent = text;
+  box.appendChild(line);
+  while (box.childElementCount > 600) box.removeChild(box.firstElementChild);
+  box.scrollTop = box.scrollHeight;
+}
+function isEmptyBox(box) {
+  return box.childElementCount === 0 ||
+    (box.childElementCount === 1 && box.firstElementChild.classList.contains('muted'));
+}
+async function copyText(text) {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text); return true;
+    }
+  } catch (e) {}
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.setAttribute('readonly', '');
+  ta.style.cssText = 'position:fixed;left:-9999px;top:0;';
+  document.body.appendChild(ta); ta.select();
+  let ok = false;
+  try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+  document.body.removeChild(ta); return ok;
+}
+let toastTimer = null;
+function toast(msg) {
+  const el = $('toast'); el.textContent = msg; el.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('on'), 1800);
+}
+
+const WORKER_SRC = `
+function inspect(v, d) {
+  d = d || 0;
+  var t = typeof v;
+  if (v === null) return 'null';
+  if (t === 'undefined') return 'undefined';
+  if (t === 'string') return d ? JSON.stringify(v) : v;
+  if (t === 'number' || t === 'boolean' || t === 'bigint') return String(v);
+  if (t === 'symbol') return v.toString();
+  if (t === 'function') return 'ƒ ' + (v.name || 'anonymous') + '()';
+  if (v instanceof Error) return v.name + ': ' + v.message;
+  if (v instanceof Date) return v.toISOString();
+  if (v instanceof RegExp) return v.toString();
+  if (d > 2) return Array.isArray(v) ? '[…]' : '{…}';
+  if (Array.isArray(v)) return '[' + v.map(function (x) { return inspect(x, d + 1); }).join(', ') + ']';
+  if (v instanceof Map) return 'Map(' + v.size + ')';
+  if (v instanceof Set) return 'Set(' + v.size + ')';
+  if (t === 'object') {
+    var ks = Object.keys(v);
+    return '{' + ks.map(function (k) { return k + ': ' + inspect(v[k], d + 1); }).join(', ') + '}';
+  }
+  return String(v);
+}
+['log', 'info', 'warn', 'error', 'debug'].forEach(function (k) {
+  var orig = self.console[k] ? self.console[k].bind(self.console) : function () {};
+  self.console[k] = function () {
+    var args = Array.prototype.slice.call(arguments);
+    try {
+      self.postMessage({ __niko: 1, type: 'log', level: k,
+        text: args.map(function (a) { return inspect(a, 0); }).join(' ') });
+    } catch (err) {}
+    orig.apply(null, arguments);
+  };
+});
+self.onmessage = function (e) {
+  var code = (e.data && e.data.code) || '';
+  var run;
+  try {
+    run = new Function('return (async function () {\\n' + code + '\\n})();');
+  } catch (err) {
+    self.postMessage({ __niko: 1, type: 'error',
+      name: err.name || 'SyntaxError', message: err.message || String(err) });
+    return;
+  }
+  Promise.resolve()
+    .then(function () { return run(); })
+    .then(function (result) {
+      var has = result !== undefined;
+      self.postMessage({ __niko: 1, type: 'done', hasResult: has,
+        result: has ? inspect(result, 0) : '' });
+    })
+    .catch(function (err) {
+      self.postMessage({ __niko: 1, type: 'error',
+        name: (err && err.name) || 'Error', message: (err && err.message) || String(err) });
+    });
+};
+`;
+
+let jsWorker = null, jsTimer = null;
+function runJS() {
+  const code = $('jsIn').value;
+  const out  = $('jsOut');
+  if (jsWorker) { jsWorker.terminate(); jsWorker = null; }
+  clearTimeout(jsTimer);
+  if (!code.trim()) { setBox(out, '代码为空'); return; }
+  setBox(out, '');
+  const t0 = performance.now();
+  let settled = false;
+  const blob = new Blob([WORKER_SRC], { type: 'application/javascript' });
+  const url  = URL.createObjectURL(blob);
+  const w    = new Worker(url);
+  URL.revokeObjectURL(url);
+  jsWorker = w;
+  const settle = fn => {
+    if (settled) return;
+    settled = true;
+    clearTimeout(jsTimer);
+    fn();
+    w.terminate();
+    if (jsWorker === w) jsWorker = null;
+  };
+  const timeoutMs = $('jsTimeoutOn').checked
+    ? Math.max(100, Number($('jsTimeout').value) || 3000) : 0;
+  if (timeoutMs) {
+    jsTimer = setTimeout(() => {
+      settle(() => appendLine(out, 'error',
+        '执行超时（>' + timeoutMs + 'ms），线程已终止'));
+    }, timeoutMs);
+  }
+  w.onmessage = e => {
+    const d = e.data;
+    if (!d || d.__niko !== 1 || settled) return;
+    if (d.type === 'log') appendLine(out, d.level, d.text);
+    else if (d.type === 'done') {
+      settle(() => {
+        if (d.hasResult) appendLine(out, 'return', '返回值: ' + d.result);
+        appendLine(out, 'meta', '执行完成，耗时 ' + Math.round(performance.now() - t0) + 'ms');
+      });
+    } else if (d.type === 'error') {
+      settle(() => {
+        appendLine(out, 'error', d.name + ': ' + d.message);
+        appendLine(out, 'meta', '执行中断，耗时 ' + Math.round(performance.now() - t0) + 'ms');
+      });
+    }
+  };
+  w.onerror = err => { settle(() => appendLine(out, 'error', '线程错误: ' + (err.message || 'unknown'))); };
+  w.postMessage({ code });
+}
+
+function describe(v) {
+  if (v === null) return '类型: null';
+  if (Array.isArray(v)) return '类型: Array，元素数 ' + v.length;
+  const t = typeof v;
+  if (t === 'object') return '类型: Object，键数 ' + Object.keys(v).length;
+  return '类型: ' + t + '，值 ' + JSON.stringify(v);
+}
+function lineColAt(str, index) {
+  let line = 1, col = 1;
+  for (let i = 0; i < index && i < str.length; i++) {
+    if (str[i] === '\n') { line++; col = 1; } else col++;
+  }
+  return { line, col };
+}
+function findPos(err, raw) {
+  const m = /position\s+(\d+)/i.exec(err.message);
+  if (m) return Number(m[1]);
+  const m2 = /line\s+(\d+)\s+column\s+(\d+)/i.exec(err.message);
+  if (m2) {
+    const line = Number(m2[1]), col = Number(m2[2]);
+    let idx = 0, cur = 1;
+    while (cur < line && idx < raw.length) { if (raw[idx] === '\n') cur++; idx++; }
+    return idx + col - 1;
+  }
+  return null;
+}
+function jsonFormat() {
+  const raw = $('jsonIn').value;
+  const out = $('jsonOut');
+  setBox(out, '');
+  if (!raw.trim()) { setBox(out, '请输入 JSON'); return; }
+  try {
+    const obj = JSON.parse(raw);
+    appendLine(out, 'ok', '解析成功');
+    appendLine(out, 'meta', describe(obj));
+    appendLine(out, 'plain', JSON.stringify(obj, null, 2));
+  } catch (err) {
+    appendLine(out, 'error', '解析失败: ' + err.message);
+    const pos = findPos(err, raw);
+    if (pos !== null && pos >= 0) {
+      const { line, col } = lineColAt(raw, pos);
+      appendLine(out, 'meta', '出错位置：第 ' + line + ' 行，第 ' + col + ' 列');
+      const snippet = raw.slice(Math.max(0, pos - 30), pos + 30).replace(/\n/g, '⏎');
+      appendLine(out, 'plain', '…' + snippet + '…');
+    }
+  }
+}
+function jsonMin() {
+  const raw = $('jsonIn').value;
+  const out = $('jsonOut');
+  setBox(out, '');
+  try {
+    const min = JSON.stringify(JSON.parse(raw));
+    $('jsonIn').value = min;
+    scheduleSave();
+    appendLine(out, 'ok', '已压缩，' + raw.length + ' 字符缩减为 ' + min.length + ' 字符');
+    appendLine(out, 'plain', min);
+  } catch (err) { appendLine(out, 'error', '解析失败: ' + err.message); }
+}
+function getByPath(root, path) {
+  const parts = path.replace(/\[\s*(['"]?)(.*?)\1\s*\]/g, '.$2').split('.').filter(s => s !== '');
+  let cur = root;
+  for (const key of parts) {
+    if (cur === null || cur === undefined ||
+        (typeof cur !== 'object' && typeof cur !== 'function')) {
+      throw new Error('在 "' + key + '" 处无法继续，当前值 ' + JSON.stringify(cur));
+    }
+    if (!(key in cur)) {
+      const keys = Object.keys(cur);
+      throw new Error('找不到键 "' + key + '"' +
+        (keys.length ? '，可用键: ' + keys.slice(0, 12).join(', ') + (keys.length > 12 ? ' …' : '') : ''));
+    }
+    cur = cur[key];
+  }
+  return cur;
+}
+function jsonQuery() {
+  const out = $('jsonOut');
+  setBox(out, '');
+  let obj;
+  try { obj = JSON.parse($('jsonIn').value); }
+  catch (err) { appendLine(out, 'error', 'JSON 无效: ' + err.message); return; }
+  const path = $('jsonPath').value.trim();
+  if (!path) { appendLine(out, 'meta', '请填写路径，例如 tags[0] 或 meta.vip'); return; }
+  try {
+    const val = getByPath(obj, path);
+    appendLine(out, 'ok', '查询路径 ' + path);
+    appendLine(out, 'meta', describe(val));
+    appendLine(out, 'plain', typeof val === 'string' ? val : JSON.stringify(val, null, 2));
+  } catch (err) { appendLine(out, 'error', err.message); }
+}
+
+const BRIDGE_CODE = `(function(){function inspect(v,d){d=d||0;var t=typeof v;if(v===null)return'null';if(t==='undefined')return'undefined';if(t==='string')return d?JSON.stringify(v):v;if(t==='number'||t==='boolean'||t==='bigint')return String(v);if(t==='function')return'ƒ '+(v.name||'anonymous')+'()';if(v instanceof Error)return v.name+': '+v.message;if(v instanceof Date)return v.toISOString();if(v instanceof RegExp)return v.toString();if(d>2)return Array.isArray(v)?'[…]':'{…}';if(Array.isArray(v))return'['+v.map(function(x){return inspect(x,d+1);}).join(', ')+']';if(t==='object'){var ks=Object.keys(v);return'{'+ks.map(function(k){return k+': '+inspect(v[k],d+1);}).join(', ')+'}';}return String(v);}function send(level,args){try{parent.postMessage({__nikoFrame:1,level:level,text:args.map(function(a){return inspect(a,0);}).join(' ')},'*');}catch(e){}}['log','info','warn','error','debug'].forEach(function(k){var orig=console[k]?console[k].bind(console):function(){};console[k]=function(){send(k,Array.prototype.slice.call(arguments));orig.apply(null,arguments);};});window.addEventListener('error',function(e){send('error',['Uncaught '+(e.message||'error')+'  @'+(e.lineno||0)+':'+(e.colno||0)]);});window.addEventListener('unhandledrejection',function(e){var r=e.reason;send('error',['Unhandled rejection: '+(r&&r.message?r.message:String(r))]);});})();`;
+
+function buildDoc() {
+  const html = $('htmlIn').value;
+  const css  = $('cssIn').value;
+  const js   = $('jsIn2').value.replace(/<\/script/gi, '<\\/script');
+  return [
+    '<!DOCTYPE html>', '<html lang="zh-CN">', '<head>', '<meta charset="UTF-8">',
+    '<style>', css, '</style>', '</head>', '<body>', html,
+    '<script>', BRIDGE_CODE, '<\/script>',
+    '<script>', js, '<\/script>',
+    '</body>', '</html>'
+  ].join('\n');
+}
+let feTimer = null;
+function runFE() {
+  const out = $('feOut');
+  setBox(out, '');
+  appendLine(out, 'meta', '运行于 ' + new Date().toLocaleTimeString());
+  $('frame').srcdoc = buildDoc();
+}
+function openInNewWindow() {
+  const blob = new Blob([buildDoc()], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const win = window.open(url, '_blank');
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+  if (!win) toast('新窗口被浏览器拦截');
+}
+function downloadHTML() {
+  const blob = new Blob([buildDoc()], { type: 'text/html;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'preview-' + Date.now() + '.html';
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  toast('已下载');
+}
+window.addEventListener('message', e => {
+  const d = e.data;
+  if (!d || d.__nikoFrame !== 1) return;
+  if (e.source !== $('frame').contentWindow) return;
+  appendLine($('feOut'), d.level, d.text);
+});
+
+const STORE_KEY = 'nikotool-lite-v9';
+const SETTINGS_KEY = 'nikotool-lite-v9-settings';
+const FIELDS = ['jsIn', 'jsonIn', 'htmlIn', 'cssIn', 'jsIn2'];
+const DEFAULTS = {
+  jsIn: [
+    "const user = { name: '', score: 46 };",
+    "console.log('user:', user);",
+    "",
+    "await new Promise(r => setTimeout(r, 200));",
+    "console.log('异步等待完成');",
+    "",
+    "return user.score + 1;"
+  ].join('\n'),
+  jsonIn: '{"name":"","score":46,"tags":["js","json"],"meta":{"vip":true,"level":3}}',
+  htmlIn: '<h1>Hello</h1>\n<button id="b">点我</button>\n<p id="p">等待点击</p>',
+  cssIn: 'body{font-family:system-ui,sans-serif;background:#fff;color:#1e293b;padding:20px}\nh1{font-size:20px;margin:0 0 10px}\nbutton{padding:6px 14px;border:0;border-radius:6px;background:#2563eb;color:#fff;font-weight:500;cursor:pointer}',
+  jsIn2: "console.log('页面加载完成');\ndocument.getElementById('b').onclick = () => {\n  document.getElementById('p').textContent = '点击时间 ' + new Date().toLocaleTimeString();\n};"
+};
+let saveTimer = null;
+function scheduleSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveState, 400);
+}
+function saveState() {
+  try {
+    const data = {};
+    FIELDS.forEach(id => { data[id] = $(id).value; });
+    localStorage.setItem(STORE_KEY, JSON.stringify(data));
+  } catch (e) {}
+}
+function loadState() {
+  let data = null;
+  try { data = JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); } catch (e) {}
+  FIELDS.forEach(id => {
+    $(id).value = (data && typeof data[id] === 'string') ? data[id] : DEFAULTS[id];
+  });
+}
+let settingsTimer = null;
+function saveSettings() {
+  clearTimeout(settingsTimer);
+  settingsTimer = setTimeout(() => {
+    try {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify({
+        jsTimeoutOn: $('jsTimeoutOn').checked,
+        jsTimeout: $('jsTimeout').value,
+        feAuto: $('feAuto').checked,
+        feHeight: $('feHeight').value
+      }));
+    } catch (e) {}
+  }, 400);
+}
+function loadSettings() {
+  let s = null;
+  try { s = JSON.parse(localStorage.getItem(SETTINGS_KEY) || 'null'); } catch (e) {}
+  if (!s) return;
+  if (typeof s.jsTimeoutOn === 'boolean') $('jsTimeoutOn').checked = s.jsTimeoutOn;
+  if (s.jsTimeout) $('jsTimeout').value = s.jsTimeout;
+  if (typeof s.feAuto === 'boolean') $('feAuto').checked = s.feAuto;
+  if (s.feHeight) {
+    $('feHeight').value = s.feHeight;
+    $('frame').style.height = s.feHeight + 'px';
+  }
+}
+
+document.querySelectorAll('.mini').forEach(btn => {
+  const copyId  = btn.dataset.copy;
+  const clearId = btn.dataset.clear;
+  if (copyId) {
+    btn.addEventListener('click', async () => {
+      const box = $(copyId);
+      if (isEmptyBox(box)) { toast('没有可复制的内容'); return; }
+      const ok = await copyText(box.innerText);
+      toast(ok ? '已复制' : '复制失败');
+    });
+  }
+  if (clearId) {
+    btn.addEventListener('click', () => {
+      const hint = clearId === 'feOut' ? '控制台输出' : '等待运行';
+      setBox($(clearId), hint);
+    });
+  }
+});
+
+$('jsRun').onclick   = runJS;
+$('jsReset').onclick = () => {
+  $('jsIn').value = DEFAULTS.jsIn;
+  setBox($('jsOut'), '等待运行');
+  scheduleSave();
+};
+$('jsonParse').onclick = jsonFormat;
+$('jsonMin').onclick   = jsonMin;
+$('jsonQuery').onclick = jsonQuery;
+$('jsonReset').onclick = () => {
+  $('jsonIn').value = DEFAULTS.jsonIn;
+  $('jsonPath').value = '';
+  setBox($('jsonOut'), '等待输入');
+  scheduleSave();
+};
+$('feRun').onclick   = runFE;
+$('feNew').onclick   = openInNewWindow;
+$('feDown').onclick  = downloadHTML;
+$('feReset').onclick = () => {
+  $('htmlIn').value = DEFAULTS.htmlIn;
+  $('cssIn').value  = DEFAULTS.cssIn;
+  $('jsIn2').value  = DEFAULTS.jsIn2;
+  scheduleSave();
+  runFE();
+};
+$('feHeight').addEventListener('input', e => {
+  $('frame').style.height = e.target.value + 'px';
+});
+$('feHeight').addEventListener('change', saveSettings);
+['jsTimeoutOn', 'jsTimeout', 'feAuto'].forEach(id => {
+  $(id).addEventListener('change', saveSettings);
+});
+['htmlIn', 'cssIn', 'jsIn2'].forEach(id => {
+  $(id).addEventListener('input', () => {
+    if (!$('feAuto').checked) return;
+    clearTimeout(feTimer);
+    feTimer = setTimeout(runFE, 600);
+  });
+});
+FIELDS.forEach(id => $(id).addEventListener('input', scheduleSave));
+
+document.addEventListener('keydown', e => {
+  if (!(e.ctrlKey || e.metaKey) || e.key !== 'Enter') return;
+  e.preventDefault();
+  const id = (document.activeElement && document.activeElement.id) || '';
+  if (id === 'jsIn') runJS();
+  else if (id === 'jsonIn' || id === 'jsonPath') jsonFormat();
+  else if (id === 'htmlIn' || id === 'cssIn' || id === 'jsIn2') runFE();
+});
+
+document.querySelectorAll('textarea').forEach(ta => {
+  ta.addEventListener('keydown', e => {
+    if (e.key !== 'Tab' || e.ctrlKey || e.metaKey || e.altKey) return;
+    e.preventDefault();
+    const s = ta.selectionStart, en = ta.selectionEnd;
+    ta.value = ta.value.slice(0, s) + '  ' + ta.value.slice(en);
+    ta.selectionStart = ta.selectionEnd = s + 2;
+    scheduleSave();
+  });
+});
+
+loadState();
+loadSettings();
+setBox($('jsOut'), '等待运行');
+setBox($('jsonOut'), '等待输入');
+setBox($('feOut'), '控制台输出');
+$('frame').srcdoc = buildDoc();
+</script>
+</body>
+</html>
