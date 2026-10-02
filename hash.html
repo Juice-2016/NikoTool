@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>哈希值生成器 · NikoTool Lite</title>
+<style>
+:root{
+  --text:#1e293b;--text-dim:#64748b;
+  --accent:#2563eb;--accent-hover:#1d4ed8;--accent-soft:#eff6ff;
+  --code-bg:#f8fafc;--red:#dc2626;--green:#059669;
+  --dark:#1e293b;--border:#e2e8f0;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;min-height:100vh;color:var(--text);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif;
+  font-size:14px;line-height:1.65;padding:24px 20px;
+  background:#fff;position:relative;
+}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(circle at 12% 8%,rgba(96,165,250,.18) 0%,transparent 42%),
+    radial-gradient(circle at 88% 22%,rgba(147,197,253,.14) 0%,transparent 45%),
+    radial-gradient(circle at 50% 100%,rgba(191,219,254,.16) 0%,transparent 50%);
+}
+.wrap{max-width:880px;margin:0 auto;position:relative;z-index:2}
+nav{
+  display:flex;align-items:center;gap:20px;
+  padding:14px 22px;border-radius:14px;margin-bottom:32px;
+  background:rgba(30,41,59,.85);
+  backdrop-filter:blur(18px) saturate(180%);
+  -webkit-backdrop-filter:blur(18px) saturate(180%);
+  border:1px solid rgba(255,255,255,.1);
+  box-shadow:0 8px 32px rgba(30,64,175,.15);
+}
+nav .brand{font-weight:700;font-size:15px;font-family:Georgia,"Songti SC",serif;color:#fff}
+nav .brand em{font-style:normal;color:#60a5fa}
+nav a{margin-left:auto;color:#cbd5e1;text-decoration:none;font-size:13.5px}
+nav a:hover{color:#60a5fa}
+h1{margin:0 0 6px;font-size:26px;font-weight:700;letter-spacing:-.3px;font-family:Georgia,"Songti SC",serif}
+h1 span{color:var(--accent)}
+h1 + .en{font-size:11.5px;color:#94a3b8;font-style:italic;margin:0 0 10px;letter-spacing:.2px}
+p.d{margin:0 0 24px;font-size:14px;color:var(--text-dim)}
+textarea{
+  width:100%;background:#fff;color:var(--text);border:1px solid var(--border);
+  border-radius:8px;padding:10px 12px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:13px;resize:vertical;outline:none;transition:.15s;
+}
+textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(37,99,235,.12)}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:14px 0}
+.btn{
+  background:var(--accent);color:#fff;border:0;border-radius:8px;
+  padding:8px 16px;font-family:inherit;font-size:13.5px;font-weight:500;
+  cursor:pointer;transition:.15s;
+}
+.btn:hover{background:var(--accent-hover)}
+.btn.ghost{background:#fff;color:var(--text);border:1px solid var(--border)}
+.btn.ghost:hover{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.chk{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-dim);cursor:pointer;user-select:none}
+.chk input{accent-color:var(--accent)}
+.result{
+  border-radius:12px;background:rgba(255,255,255,.65);
+  backdrop-filter:blur(16px) saturate(180%);
+  -webkit-backdrop-filter:blur(16px) saturate(180%);
+  border:1px solid rgba(226,232,240,.9);
+  box-shadow:0 8px 28px rgba(30,64,175,.07), inset 0 1px 0 rgba(255,255,255,.9);
+  padding:14px 16px;margin-top:12px;
+}
+.result .algo{
+  font-size:12px;color:var(--text-dim);font-weight:600;
+  letter-spacing:.5px;margin-bottom:6px;
+  display:flex;align-items:center;gap:8px;
+}
+.result .algo em{font-style:italic;color:#94a3b8;font-weight:400}
+.result .algo .copy{
+  margin-left:auto;background:transparent;color:var(--text-dim);
+  border:1px solid var(--border);border-radius:6px;
+  padding:3px 10px;font-family:inherit;font-size:11.5px;cursor:pointer;transition:.15s;
+}
+.result .algo .copy:hover{color:var(--accent);border-color:var(--accent);background:var(--accent-soft)}
+.result .val{
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:12.5px;color:var(--text);word-break:break-all;line-height:1.7;
+}
+.result .val.empty{color:var(--text-dim)}
+.raw{
+  font-size:13px;color:var(--text-dim);margin-top:18px;padding-top:12px;
+  border-top:1px solid var(--border);
+}
+.raw b{color:var(--text);font-weight:500}
+footer{color:var(--text-dim);font-size:12.5px;text-align:center;padding:24px 0 8px}
+footer em{font-style:italic;color:#94a3b8}
+kbd{background:#fff;border:1px solid var(--border);border-radius:4px;padding:1px 6px;font-family:inherit;font-size:12px;color:var(--text)}
+#toast{
+  position:fixed;left:50%;bottom:24px;transform:translate(-50%,10px);
+  background:var(--dark);color:#fff;border-radius:8px;
+  padding:10px 18px;font-size:13px;
+  opacity:0;pointer-events:none;transition:.2s;
+  box-shadow:0 4px 16px rgba(30,41,59,.2);z-index:99;
+}
+#toast.on{opacity:1;transform:translate(-50%,0)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<nav>
+  <span class="brand">NikoTool <em>Lite</em></span>
+  <a href="index.html">← 返回主页 · Back</a>
+</nav>
+
+<h1>哈希<span>生成器</span></h1>
+<div class="en">Hash Generator · SHA-256 / SHA-1 / SHA-512 / MD5</div>
+<p class="d">输入任意文本，生成多种哈希值。所有计算都在你的浏览器中完成，不上传任何数据。</p>
+
+<textarea id="input" rows="4" placeholder="在此输入要计算哈希的内容…"></textarea>
+
+<div class="row">
+  <button class="btn" id="run">重新计算</button>
+  <button class="btn ghost" id="clear">清空</button>
+  <label class="chk"><input type="checkbox" id="upper"> 大写输出</label>
+  <label class="chk"><input type="checkbox" id="live" checked> 实时计算</label>
+  <label class="chk"><input type="checkbox" id="fileMode"> 读取文件</label>
+  <input type="file" id="file" style="display:none">
+</div>
+
+<div id="results">
+  <div class="result">
+    <div class="algo">SHA-256 <em>WebCrypto</em> <button class="copy" data-algo="sha256">复制</button></div>
+    <div class="val empty" id="v-sha256">—</div>
+  </div>
+  <div class="result">
+    <div class="algo">SHA-1 <em>WebCrypto</em> <button class="copy" data-algo="sha1">复制</button></div>
+    <div class="val empty" id="v-sha1">—</div>
+  </div>
+  <div class="result">
+    <div class="algo">SHA-512 <em>WebCrypto</em> <button class="copy" data-algo="sha512">复制</button></div>
+    <div class="val empty" id="v-sha512">—</div>
+  </div>
+  <div class="result">
+    <div class="algo">MD5 <em>pure JS</em> <button class="copy" data-algo="md5">复制</button></div>
+    <div class="val empty" id="v-md5">—</div>
+  </div>
+</div>
+
+<div class="raw">
+  输入长度 <b id="len">0</b> 字符 · 字节 <b id="bytes">0</b> B · 耗时 <b id="time">0</b> ms
+</div>
+
+<footer>
+  <kbd>Ctrl</kbd> + <kbd>Enter</kbd> 重新计算
+  <em> · runs fully client-side</em>
+</footer>
+</div>
+
+<div id="toast"></div>
+<script>
+const $ = id => document.getElementById(id);
+let tt = null;
+function toast(m){
+  const e = $('toast'); e.textContent = m; e.classList.add('on');
+  clearTimeout(tt); tt = setTimeout(()=>e.classList.remove('on'),1600);
+}
+
+const MD5 = (function(){
+  function safeAdd(x,y){ const lsw=(x&0xffff)+(y&0xffff); return (((x>>16)+(y>>16)+(lsw>>16))<<16)|(lsw&0xffff); }
+  function rol(n,c){ return (n<<c)|(n>>>(32-c)); }
+  function cmn(q,a,b,x,s,t){ return safeAdd(rol(safeAdd(safeAdd(a,q),safeAdd(x,t)),s),b); }
+  function ff(a,b,c,d,x,s,t){ return cmn((b&c)|((~b)&d),a,b,x,s,t); }
+  function gg(a,b,c,d,x,s,t){ return cmn((b&d)|(c&(~d)),a,b,x,s,t); }
+  function hh(a,b,c,d,x,s,t){ return cmn(b^c^d,a,b,x,s,t); }
+  function ii(a,b,c,d,x,s,t){ return cmn(c^(b|(~d)),a,b,x,s,t); }
+  function toBytes(str){
+    const utf8 = unescape(encodeURIComponent(str));
+    const arr = new Array(utf8.length);
+    for (let i=0;i<utf8.length;i++) arr[i] = utf8.charCodeAt(i);
+    return arr;
+  }
+  function hex(n){
+    let s = '';
+    for (let i=0;i<4;i++) s += ('0'+((n>>(i*8))&0xff).toString(16)).slice(-2);
+    return s;
+  }
+  return function(str){
+    const x = toBytes(str);
+    const len = x.length;
+    x.push(0x80);
+    while (x.length % 64 !== 56) x.push(0);
+    const bitLen = len * 8;
+    x.push(bitLen & 0xff, (bitLen>>>8)&0xff, (bitLen>>>16)&0xff, (bitLen>>>24)&0xff, 0,0,0,0);
+
+    let a=1732584193, b=-271733879, c=-1732584194, d=271733878;
+    for (let i=0;i<x.length;i+=64){
+      const olda=a, oldb=b, oldc=c, oldd=d;
+      const M = (j)=>x[i+j] | (x[i+j+1]<<8) | (x[i+j+2]<<16) | (x[i+j+3]<<24);
+
+      a=ff(a,b,c,d,M(0),7,-680876936);      d=ff(d,a,b,c,M(4),12,-389564586);
+      c=ff(c,d,a,b,M(8),17,606105819);      b=ff(b,c,d,a,M(12),22,-1044525330);
+      a=ff(a,b,c,d,M(16),7,-176418897);     d=ff(d,a,b,c,M(20),12,1200080426);
+      c=ff(c,d,a,b,M(24),17,-1473231341);   b=ff(b,c,d,a,M(28),22,-45705983);
+      a=ff(a,b,c,d,M(32),7,1770035416);     d=ff(d,a,b,c,M(36),12,-1958414417);
+      c=ff(c,d,a,b,M(40),17,-42063);        b=ff(b,c,d,a,M(44),22,-1990404162);
+      a=ff(a,b,c,d,M(48),7,1804603682);     d=ff(d,a,b,c,M(52),12,-40341101);
+      c=ff(c,d,a,b,M(56),17,-1502002290);   b=ff(b,c,d,a,M(60),22,1236535329);
+
+      a=gg(a,b,c,d,M(4),5,-165796510);      d=gg(d,a,b,c,M(24),9,-1069501632);
+      c=gg(c,d,a,b,M(44),14,643717713);     b=gg(b,c,d,a,M(0),20,-373897302);
+      a=gg(a,b,c,d,M(20),5,-701558691);     d=gg(d,a,b,c,M(40),9,38016083);
+      c=gg(c,d,a,b,M(0),14,-660478335);     b=gg(b,c,d,a,M(20),20,-405537848);
+      a=gg(a,b,c,d,M(40),5,568446438);      d=gg(d,a,b,c,M(0),9,-1019803690);
+      c=gg(c,d,a,b,M(20),14,-187363961);    b=gg(b,c,d,a,M(40),20,1163531501);
+      a=gg(a,b,c,d,M(0),5,-1444681467);     d=gg(d,a,b,c,M(20),9,-51403784);
+      c=gg(c,d,a,b,M(40),14,1735328473);    b=gg(b,c,d,a,M(0),20,-1926607734);
+
+      a=hh(a,b,c,d,M(5),4,-378558);         d=hh(d,a,b,c,M(12),11,-2022574463);
+      c=hh(c,d,a,b,M(20),16,1839030562);    b=hh(b,c,d,a,M(28),23,-35309556);
+      a=hh(a,b,c,d,M(4),4,-1530992060);     d=hh(d,a,b,c,M(12),11,1272893353);
+      c=hh(c,d,a,b,M(20),16,-155497632);    b=hh(b,c,d,a,M(28),23,-1094730640);
+      a=hh(a,b,c,d,M(4),4,681279174);       d=hh(d,a,b,c,M(12),11,-358537222);
+      c=hh(c,d,a,b,M(20),16,-722521979);    b=hh(b,c,d,a,M(28),23,76029189);
+      a=hh(a,b,c,d,M(4),4,-640364487);      d=hh(d,a,b,c,M(12),11,-421815835);
+      c=hh(c,d,a,b,M(20),16,530742520);     b=hh(b,c,d,a,M(28),23,-995338651);
+
+      a=ii(a,b,c,d,M(0),6,-198630844);      d=ii(d,a,b,c,M(4),10,1126891415);
+      c=ii(c,d,a,b,M(8),15,-1416354905);    b=ii(b,c,d,a,M(12),21,-57434055);
+      a=ii(a,b,c,d,M(16),6,1700485571);     d=ii(d,a,b,c,M(20),10,-1894986606);
+      c=ii(c,d,a,b,M(24),15,-1051523);      b=ii(b,c,d,a,M(28),21,-2054922799);
+      a=ii(a,b,c,d,M(32),6,1873313359);     d=ii(d,a,b,c,M(36),10,-30611744);
+      c=ii(c,d,a,b,M(40),15,-1560198380);   b=ii(b,c,d,a,M(44),21,1309151649);
+      a=ii(a,b,c,d,M(48),6,-145523070);     d=ii(d,a,b,c,M(52),10,-1120210379);
+      c=ii(c,d,a,b,M(56),15,718787259);     b=ii(b,c,d,a,M(60),21,-343485551);
+
+      a=safeAdd(a,olda); b=safeAdd(b,oldb); c=safeAdd(c,oldc); d=safeAdd(d,oldd);
+    }
+    return hex(a)+hex(b)+hex(c)+hex(d);
+  };
+})();
+
+async function compute(text){
+  const data = new TextEncoder().encode(text);
+  const out = {};
+  const algos = ['SHA-256','SHA-1','SHA-512'];
+  const bufs = await Promise.all(algos.map(a => crypto.subtle.digest(a, data)));
+  out.sha256 = bufToHex(bufs[0]);
+  out.sha1   = bufToHex(bufs[1]);
+  out.sha512 = bufToHex(bufs[2]);
+  out.md5 = MD5(text);
+  return out;
+}
+function bufToHex(buf){
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+function applyCase(hex){ return $('upper').checked ? hex.toUpperCase() : hex.toLowerCase(); }
+
+async function run(){
+  const text = $('input').value;
+  const t0 = performance.now();
+  $('len').textContent = text.length;
+  $('bytes').textContent = new TextEncoder().encode(text).length;
+  $('time').textContent = '…';
+  try {
+    const r = await compute(text);
+    ['sha256','sha1','sha512','md5'].forEach(k => {
+      const el = $('v-'+k);
+      el.textContent = applyCase(r[k]);
+      el.classList.remove('empty');
+      el.dataset.raw = r[k];
+    });
+    $('time').textContent = (performance.now() - t0).toFixed(1);
+  } catch (e) {
+    ['sha256','sha1','sha512','md5'].forEach(k => {
+      const el = $('v-'+k);
+      el.textContent = '计算失败: ' + e.message;
+      el.classList.add('empty');
+    });
+    $('time').textContent = '—';
+  }
+}
+
+let timer = null;
+function scheduleRun(){ clearTimeout(timer); timer = setTimeout(run, 120); }
+
+document.querySelectorAll('.copy').forEach(btn => {
+  btn.onclick = async () => {
+    const algo = btn.dataset.algo;
+    const raw = $('v-'+algo).dataset.raw || '';
+    if (!raw) { toast('没有可复制的内容'); return; }
+    const text = applyCase(raw);
+    try {
+      await navigator.clipboard.writeText(text);
+      toast(algo.toUpperCase() + ' 已复制');
+    } catch (e) {
+      const ta = document.createElement('textarea');
+      ta.value = text; document.body.appendChild(ta); ta.select();
+      document.execCommand('copy'); ta.remove();
+      toast(algo.toUpperCase() + ' 已复制');
+    }
+  };
+});
+
+$('fileMode').addEventListener('change', e => {
+  if (e.target.checked) { $('file').click(); }
+  else { $('file').value = ''; $('input').value = ''; run(); }
+});
+$('file').addEventListener('change', e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const reader = new FileReader();
+  reader.onload = () => {
+    $('input').value = '（文件：' + f.name + '，' + f.size + ' 字节）';
+    computeFromArrayBuffer(reader.result, f.name, f.size);
+  };
+  reader.readAsArrayBuffer(f);
+});
+async function computeFromArrayBuffer(buf, name, size){
+  const t0 = performance.now();
+  $('len').textContent = '—';
+  $('bytes').textContent = size;
+  try {
+    const data = new Uint8Array(buf);
+    const [b256, b1, b512] = await Promise.all([
+      crypto.subtle.digest('SHA-256', data),
+      crypto.subtle.digest('SHA-1', data),
+      crypto.subtle.digest('SHA-512', data)
+    ]);
+    const r = { sha256: bufToHex(b256), sha1: bufToHex(b1), sha512: bufToHex(b512), md5: '（文件模式暂不支持 MD5）' };
+    ['sha256','sha1','sha512','md5'].forEach(k => {
+      const el = $('v-'+k);
+      el.textContent = k === 'md5' ? r[k] : applyCase(r[k]);
+      el.classList.remove('empty');
+      el.dataset.raw = k === 'md5' ? '' : r[k];
+    });
+    $('time').textContent = (performance.now() - t0).toFixed(1);
+  } catch (e) { toast('文件计算失败: ' + e.message); }
+}
+
+$('run').onclick = run;
+$('clear').onclick = () => {
+  $('input').value = ''; $('fileMode').checked = false; $('file').value = ''; run();
+};
+$('upper').onchange = () => {
+  ['sha256','sha1','sha512','md5'].forEach(k => {
+    const el = $('v-'+k);
+    if (el.dataset.raw) el.textContent = applyCase(el.dataset.raw);
+  });
+};
+$('input').addEventListener('input', () => {
+  if ($('live').checked && !$('fileMode').checked) scheduleRun();
+});
+$('input').addEventListener('keydown', e => {
+  if ((e.ctrlKey||e.metaKey) && e.key === 'Enter') { e.preventDefault(); run(); }
+});
+
+try {
+  const saved = localStorage.getItem('niko-hash-input');
+  if (saved !== null) $('input').value = saved;
+  else $('input').value = 'Hello';
+} catch(e) { $('input').value = 'Hello'; }
+$('input').addEventListener('input', () => {
+  try { localStorage.setItem('niko-hash-input', $('input').value); } catch(e) {}
+});
+
+run();
+</script>
+</body>
+</html>
